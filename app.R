@@ -20,9 +20,13 @@ menu_nav <- list(
   list(id = "tentang", label = "Tentang", ikon = "Tentang")
 )
 
+favicon_svg <- "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#5B4BE8'/><stop offset='1' stop-color='#D9468A'/></linearGradient></defs><circle cx='20' cy='20' r='20' fill='url(#g)'/><g transform='translate(8 8)' fill='none' stroke='#fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='3' width='14' height='14' rx='4'/><path d='M5 11h14M9 20l-2 2M15 20l2 2M9 14.5v.01M15 14.5v.01'/></g></svg>"
+favicon_uri <- paste0("data:image/svg+xml,", utils::URLencode(favicon_svg, reserved = TRUE))
+
 ui <- page_fluid(
   theme = tema, title = "Railway Statistics Lab",
   tags$head(
+    tags$link(rel = "icon", type = "image/svg+xml", href = favicon_uri),
     tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap"),
     tags$style(HTML(css_rsl)),
     tags$script(HTML(js_rsl))),
