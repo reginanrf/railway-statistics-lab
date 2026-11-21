@@ -6,21 +6,21 @@ mod_data_ui <- function(id) {
   ns <- NS(id)
   tagList(
     page_header("Data", sub = "Unggah, periksa, filter, dan unduh dataset."),
-    div(class = "g rsl-data-grid",
-        div(
-          div(class = "card", h3("Unggah dataset"),
-              fileInput(ns("berkas"), NULL, accept = c(".csv", ".xlsx", ".xls"), buttonLabel = "Pilih file CSV / Excel", placeholder = "Belum ada file"),
-              actionButton(ns("contoh"), "Muat contoh (simulasi)", class = "btn s"),
-              p(class = "mu mt-2", "Kolom wajib: tanggal, jam_keberangkatan, jumlah_penumpang. Opsional: hari, jenis_hari, stasiun. Satu baris = jumlah penumpang pada satu tanggal, satu jam, dan satu stasiun (jika ada)."),
-              uiOutput(ns("status"))),
-          uiOutput(ns("isu")),
-          uiOutput(ns("ui_ringkasan"))),
-        div(
-          uiOutput(ns("ui_kosong")),
-          conditionalPanel("output.ada_data", ns = ns,
-                           div(class = "card", h3("Filter dataset"), mod_filter_ui(ns("filter")),
-                               downloadButton(ns("unduh"), "Unduh data terfilter (CSV)", class = "btn s btn-sm")),
-                           div(class = "card", h3("Data preview"), DT::DTOutput(ns("preview"))))))
+    page_body(div(class = "g rsl-data-grid",
+                  div(
+                    div(class = "card", h3("Unggah dataset"),
+                        fileInput(ns("berkas"), NULL, accept = c(".csv", ".xlsx", ".xls"), buttonLabel = "Pilih file CSV / Excel", placeholder = "Belum ada file"),
+                        actionButton(ns("contoh"), "Muat contoh (simulasi)", class = "btn s"),
+                        p(class = "mu mt-2", "Kolom wajib: tanggal, jam_keberangkatan, jumlah_penumpang. Opsional: hari, jenis_hari, stasiun. Satu baris = jumlah penumpang pada satu tanggal, satu jam, dan satu stasiun (jika ada)."),
+                        uiOutput(ns("status"))),
+                    uiOutput(ns("isu")),
+                    uiOutput(ns("ui_ringkasan"))),
+                  div(
+                    uiOutput(ns("ui_kosong")),
+                    conditionalPanel("output.ada_data", ns = ns,
+                                     div(class = "card", h3("Filter dataset"), mod_filter_ui(ns("filter")),
+                                         downloadButton(ns("unduh"), "Unduh data terfilter (CSV)", class = "btn s btn-sm")),
+                                     div(class = "card", h3("Data preview"), DT::DTOutput(ns("preview")))))))
   )
 }
 

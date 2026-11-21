@@ -23,12 +23,19 @@ ikon <- function(id) HTML(sprintf('<svg><use href="#i-%s"/></svg>', id))
 # Pindah halaman dari tombol HTML biasa (ditangkap di app.R sebagai input$nav_pilih)
 js_ke <- function(halaman) sprintf("Shiny.setInputValue('nav_pilih','%s',{priority:'event'})", halaman)
 
-# Header halaman (pita putih di atas konten). tabs = elemen tab bawah judul (opsional)
-page_header <- function(judul, sub = NULL, lencana = NULL, tabs = NULL) {
-  div(class = paste("ph", if (!is.null(tabs)) "t"),
-      if (!is.null(tabs)) tagList(div(class = "ah", h2(judul), lencana), tabs)
-      else tagList(h2(judul), if (!is.null(sub)) p(class = "mu", sub)))
+# Header halaman (pita putih di atas konten), sama di semua halaman:
+#   Judul  [lencana]
+#   Subjudul
+page_header <- function(judul, sub = NULL, lencana = NULL) {
+  div(class = "ph",
+      div(class = "ph-in",
+          div(class = "ph-row", h2(judul), lencana),
+          if (!is.null(sub)) p(class = "ph-sub", sub)))
 }
+
+# Pembungkus isi halaman: memberi padding kiri-kanan agar konten tidak menempel ke sidebar/tepi layar.
+# Header (page_header) berada di LUAR pembungkus ini supaya tetap selebar layar. top = TRUE bila halaman tanpa header.
+page_body <- function(..., top = FALSE) div(class = paste("pg", if (top) "pg-top"), ...)
 
 # Kartu statistik dengan garis aksen di kiri
 kartu_stat <- function(label, nilai, sub = NULL, hi = FALSE, kecil = FALSE) {
