@@ -24,8 +24,8 @@ ui <- page_fluid(
   theme = tema, title = "Railway Statistics Lab",
   tags$head(
     tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap"),
-    tags$link(rel = "stylesheet", href = "custom.css"),
-    tags$script(src = "nav.js")),
+    tags$style(HTML(css_rsl)),
+    tags$script(HTML(js_rsl))),
   sprite_ikon(),
   div(class = "rsl-shell",
       tags$nav(class = "rsl-nav",

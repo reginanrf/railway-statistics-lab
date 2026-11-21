@@ -58,7 +58,7 @@ grafik_boxplot <- function(df, judul) {
 
 grafik_histogram <- function(df, judul) {
   p <- ggplot2::ggplot(df, ggplot2::aes(jumlah_penumpang)) +
-    ggplot2::geom_histogram(bins = 10, fill = WARNA_UTAMA, color = "white") +
+    ggplot2::geom_histogram(bins = 8, fill = WARNA_UTAMA, color = "white") +
     ggplot2::labs(title = judul, x = "Jumlah penumpang", y = "Frekuensi pengamatan") + tema_rsl()
   rapikan_plotly(plotly::ggplotly(p))
 }

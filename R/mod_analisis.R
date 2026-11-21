@@ -83,7 +83,7 @@ mod_analisis_server <- function(id, state) {
         if (!is.null(h$plot2)) div(class = "card", plotly::plotlyOutput(ns("plot2"))),
         if (!is.null(h$catatan)) div(class = "msg wr", h$catatan))
     })
-    output$tabel <- DT::renderDT(DT::datatable(hasil()$tabel, rownames = FALSE, selection = "none", options = list(pageLength = 15, dom = "tip", paging = nrow(hasil()$tabel) > 15)))
+    output$tabel <- DT::renderDT(DT::datatable(hasil()$tabel, rownames = FALSE, selection = "none", options = list(columnDefs = list(list(className = "dt-right", targets = seq_len(ncol(hasil()$tabel) - 1))), pageLength = 15, dom = "tip", paging = nrow(hasil()$tabel) > 15)))
     output$plot1 <- plotly::renderPlotly(hasil()$plot1)
     output$plot2 <- plotly::renderPlotly(hasil()$plot2)
     output$unduh_hasil <- downloadHandler(

@@ -12,7 +12,7 @@ pintasan_beranda <- list(
 
 mod_beranda_ui <- function(id) {
   ns <- NS(id)
-  tagList(page_header("Beranda"), uiOutput(ns("isi")))
+  uiOutput(ns("isi"))
 }
 
 mod_beranda_server <- function(id, state, ke_halaman) {
