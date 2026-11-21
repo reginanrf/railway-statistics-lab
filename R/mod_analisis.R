@@ -8,26 +8,29 @@ mod_analisis_ui <- function(id) {
   ns <- NS(id)
   kond <- function(nilai) sprintf("input['%s'] == '%s'", ns("jenis"), nilai)
   tagList(
-    page_header("Analisis", lencana = uiOutput(ns("lencana"), inline = TRUE),
-                tabs = div(class = "utabs",
-                           radioButtons(ns("jenis"), NULL, inline = TRUE,
-                                        choices = c("Statistik Deskriptif" = "desc", "Distribusi" = "dist", "Perbandingan Deskriptif" = "cmp")))),
-    div(class = "split",
-        div(class = "card cfg", h3("Pengaturan analisis"),
-            mod_filter_ui(ns("filter")),
-            div(class = "fb",
-                conditionalPanel(kond("desc"), selectInput(ns("variabel"), "Variabel", choices = "jumlah_penumpang")),
-                conditionalPanel(kond("dist"),
-                                 selectInput(ns("dist"), "Jenis distribusi", c("Menurut jam" = "jam", "Menurut jenis hari" = "jenis", "Tabulasi silang" = "silang")),
-                                 selectInput(ns("agregasi"), "Agregasi", c("Rata-rata" = "mean", "Total" = "total", "Persentase" = "persen"))),
-                conditionalPanel(kond("cmp"),
-                                 selectInput(ns("kelompok"), "Kelompok", c("Hari kerja vs akhir pekan" = "kerja_akhir_pekan",
-                                                                           "Hari kerja vs hari libur" = "kerja_libur",
-                                                                           "Jam sibuk (06–09 & 16–19) vs lainnya" = "jam_sibuk")),
-                                 selectInput(ns("ukuran"), "Ukuran grafik", c("Rata-rata", "Total", "Median", "Minimum", "Maksimum", "Std. deviasi"))),
-                actionButton(ns("jalankan"), "Jalankan Analisis", class = "btn")),
-            uiOutput(ns("n_sesuai"))),
-        div(class = "res", uiOutput(ns("ui_hasil"))))
+    page_header("Analisis", sub = "Statistik Deskriptif, Distribusi, Perbandingan Deskriptif",
+                lencana = uiOutput(ns("lencana"), inline = TRUE)),
+    # Satu wadah putih: tab jenis analisis + (pengaturan | hasil)
+    page_body(div(class = "an-wrap",
+                  div(class = "utabs",
+                      radioButtons(ns("jenis"), NULL, inline = TRUE,
+                                   choices = c("Statistik Deskriptif" = "desc", "Distribusi" = "dist", "Perbandingan Deskriptif" = "cmp"))),
+                  div(class = "split",
+                      div(class = "card cfg", h3("Pengaturan analisis"),
+                          mod_filter_ui(ns("filter")),
+                          div(class = "fb",
+                              conditionalPanel(kond("desc"), selectInput(ns("variabel"), "Variabel", choices = "jumlah_penumpang")),
+                              conditionalPanel(kond("dist"),
+                                               selectInput(ns("dist"), "Jenis distribusi", c("Menurut jam" = "jam", "Menurut jenis hari" = "jenis", "Tabulasi silang" = "silang")),
+                                               selectInput(ns("agregasi"), "Agregasi", c("Rata-rata" = "mean", "Total" = "total", "Persentase" = "persen"))),
+                              conditionalPanel(kond("cmp"),
+                                               selectInput(ns("kelompok"), "Kelompok", c("Hari kerja vs akhir pekan" = "kerja_akhir_pekan",
+                                                                                         "Hari kerja vs hari libur" = "kerja_libur",
+                                                                                         "Jam sibuk (06–09 & 16–19) vs lainnya" = "jam_sibuk")),
+                                               selectInput(ns("ukuran"), "Ukuran grafik", c("Rata-rata", "Total", "Median", "Minimum", "Maksimum", "Std. deviasi"))),
+                              actionButton(ns("jalankan"), "Jalankan Analisis", class = "btn")),
+                          uiOutput(ns("n_sesuai"))),
+                      div(class = "res", uiOutput(ns("ui_hasil"))))))
   )
 }
 
@@ -69,8 +72,6 @@ mod_analisis_server <- function(id, state) {
       judul <- c(desc = "Statistik Deskriptif", dist = "Distribusi", cmp = "Perbandingan Deskriptif")[[h$jenis]]
       nilai <- function(u) h$tabel$Nilai[h$tabel$Ukuran == u]
       tagList(
-        div(class = "fb", h3(style = "margin:0", paste("Hasil:", judul)),
-            downloadButton(ns("unduh_hasil"), "Unduh tabel hasil (CSV)", class = "btn s btn-sm")),
         div(class = "card", h3("Interpretasi otomatis"),
             tags$ul(class = "ip", lapply(h$interpretasi, tags$li)),
             div(class = "mu", sprintf("Deskripsi hasil pada data yang dianalisis, bukan klaim sebab-akibat. Data: %s pengamatan, %s hari.",
@@ -78,10 +79,13 @@ mod_analisis_server <- function(id, state) {
         if (h$jenis == "desc") div(class = "g g4",
                                    kartu_stat("N", nilai("N")), kartu_stat("Mean", nilai("Mean")),
                                    kartu_stat("Median", nilai("Median")), kartu_stat("Std. deviasi", nilai("Standar deviasi"))),
-        div(class = "card", DT::DTOutput(ns("tabel"))),
-        div(class = "card", plotly::plotlyOutput(ns("plot1"))),
-        if (!is.null(h$plot2)) div(class = "card", plotly::plotlyOutput(ns("plot2"))),
-        if (!is.null(h$catatan)) div(class = "msg wr", h$catatan))
+        div(class = "card hasil",
+            div(class = "fb", h3(style = "margin:0", paste("Hasil:", judul)),
+                downloadButton(ns("unduh_hasil"), "Unduh CSV", class = "btn s btn-sm")),
+            DT::DTOutput(ns("tabel")),
+            plotly::plotlyOutput(ns("plot1")),
+            if (!is.null(h$plot2)) plotly::plotlyOutput(ns("plot2")),
+            if (!is.null(h$catatan)) div(class = "msg wr", h$catatan)))
     })
     output$tabel <- DT::renderDT(DT::datatable(hasil()$tabel, rownames = FALSE, selection = "none", options = list(columnDefs = list(list(className = "dt-right", targets = seq_len(ncol(hasil()$tabel) - 1))), pageLength = 15, dom = "tip", paging = nrow(hasil()$tabel) > 15)))
     output$plot1 <- plotly::renderPlotly(hasil()$plot1)

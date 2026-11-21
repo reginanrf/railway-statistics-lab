@@ -12,7 +12,7 @@ pintasan_beranda <- list(
 
 mod_beranda_ui <- function(id) {
   ns <- NS(id)
-  uiOutput(ns("isi"))
+  page_body(uiOutput(ns("isi")), top = TRUE)   # Beranda sengaja tanpa header halaman
 }
 
 mod_beranda_server <- function(id, state, ke_halaman) {
