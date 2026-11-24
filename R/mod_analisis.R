@@ -41,7 +41,10 @@ mod_analisis_server <- function(id, state) {
 
     output$lencana <- renderUI({
       req(state$data)
-      if (grepl("simulasi", state$file %||% "")) span(class = "badge wr", "Data Simulasi") else span(class = "badge ok", "Data Aktual")
+      switch(jenis_sumber(state$file),
+             simulasi = span(class = "badge wr", "Data Simulasi"),
+             alokasi  = span(class = "badge wr", "Data Alokasi"),
+             span(class = "badge ok", "Data Aktual"))
     })
     output$n_sesuai <- renderUI({
       req(state$data)
@@ -87,7 +90,12 @@ mod_analisis_server <- function(id, state) {
             if (!is.null(h$plot2)) plotly::plotlyOutput(ns("plot2")),
             if (!is.null(h$catatan)) div(class = "msg wr", h$catatan)))
     })
-    output$tabel <- DT::renderDT(DT::datatable(hasil()$tabel, rownames = FALSE, selection = "none", options = list(columnDefs = list(list(className = "dt-right", targets = seq_len(ncol(hasil()$tabel) - 1))), pageLength = 15, dom = "tip", paging = nrow(hasil()$tabel) > 15)))
+    output$tabel <- DT::renderDT({
+      tb <- hasil()$tabel
+      DT::datatable(tb, rownames = FALSE, selection = "none",
+                    options = list(columnDefs = list(list(className = "dt-right", targets = seq_len(ncol(tb) - 1))),
+                                   pageLength = 15, dom = "tip", paging = nrow(tb) > 15))
+    }, server = FALSE)
     output$plot1 <- plotly::renderPlotly(hasil()$plot1)
     output$plot2 <- plotly::renderPlotly(hasil()$plot2)
     output$unduh_hasil <- downloadHandler(
