@@ -7,6 +7,22 @@
 KOLOM_WAJIB <- c("tanggal", "jam_keberangkatan", "jumlah_penumpang")
 HARI_ID     <- c("Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu")
 
+# Berkas bawaan hasil alokasi (bukan pencacahan). Dipakai untuk menandai label di UI
+# agar tidak tampil sebagai "Data Aktual". Rinciannya dijelaskan di menu Tentang.
+BERKAS_ALOKASI <- c("jabodetabek_2025.csv", "jabodetabek_2025_agregat.csv")
+
+# Mengembalikan "simulasi" | "alokasi" | "aktual" berdasarkan nama berkas
+jenis_sumber <- function(nama) {
+  nama <- if (is.null(nama) || length(nama) == 0 || is.na(nama[1])) "" else as.character(nama[1])
+  if (grepl("simulasi", nama)) {
+    "simulasi"
+  } else if (nama %in% BERKAS_ALOKASI) {
+    "alokasi"
+  } else {
+    "aktual"
+  }
+}
+
 buat_isu <- function(tipe, pesan) list(tipe = tipe, pesan = pesan)
 
 # Format angka gaya Indonesia (1.234,56)
@@ -19,7 +35,12 @@ parse_tanggal <- function(x) {
   if (inherits(x, "POSIXt")) return(as.Date(x))
   if (is.numeric(x)) return(as.Date(x, origin = "1899-12-30"))
   x <- trimws(as.character(x))
-  out <- suppressWarnings(as.Date(lubridate::parse_date_time(x, orders = c("Ymd", "dmY"), quiet = TRUE)))
+  # Jalur cepat untuk format yyyy-mm-dd (penting untuk berkas ratusan ribu baris)
+  out <- suppressWarnings(as.Date(x, format = "%Y-%m-%d"))
+  sisa <- is.na(out)
+  if (any(sisa)) {
+    out[sisa] <- suppressWarnings(as.Date(lubridate::parse_date_time(x[sisa], orders = c("Ymd", "dmY"), quiet = TRUE)))
+  }
   num <- suppressWarnings(as.numeric(x))
   idx <- is.na(out) & !is.na(num) & num > 20000   # serial tanggal Excel yang terbaca sebagai teks
   out[idx] <- as.Date(num[idx], origin = "1899-12-30")
@@ -69,8 +90,8 @@ proses_dataset <- function(raw) {
   hilang <- setdiff(KOLOM_WAJIB, names(raw))
   if (length(hilang) > 0) {
     return(list(data = NULL, status = "bad", info = info, issues = list(buat_isu("error",
-      paste0("Kolom wajib tidak ditemukan: ", paste(hilang, collapse = ", "),
-             ". Dataset yang hanya berisi jadwal/rute/ID kereta tanpa jumlah penumpang aktual tidak dapat dipakai.")))))
+                                                                                 paste0("Kolom wajib tidak ditemukan: ", paste(hilang, collapse = ", "),
+                                                                                        ". Dataset yang hanya berisi jadwal/rute/ID kereta tanpa jumlah penumpang aktual tidak dapat dipakai.")))))
   }
 
   kosong <- function(x) is.na(x) | trimws(as.character(x)) == ""
@@ -126,4 +147,13 @@ muat_ke_state <- function(state, hasil, nama) {
   state$issues <- hasil$issues
   state$file <- nama
   state$dimuat <- Sys.time()
+}
+
+# Pembantu: baca berkas dari folder data/ (bukan unggahan, jadi tidak kena batas ukuran unggah)
+muat_berkas_bawaan <- function(state, path) {
+  nama <- basename(path)
+  hasil <- tryCatch(proses_dataset(baca_berkas(path, nama)),
+                    error = function(e) list(data = NULL, status = "bad", info = NULL,
+                                             issues = list(buat_isu("error", paste("Gagal membaca file:", conditionMessage(e))))))
+  muat_ke_state(state, hasil, nama)
 }

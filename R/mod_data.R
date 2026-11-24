@@ -10,7 +10,8 @@ mod_data_ui <- function(id) {
                   div(
                     div(class = "card", h3("Unggah dataset"),
                         fileInput(ns("berkas"), NULL, accept = c(".csv", ".xlsx", ".xls"), buttonLabel = "Pilih file CSV / Excel", placeholder = "Belum ada file"),
-                        actionButton(ns("contoh"), "Muat contoh (simulasi)", class = "btn s"),
+                        actionButton(ns("jabodetabek"), "Muat data Jabodetabek 2025", class = "btn"),
+                        actionButton(ns("contoh"), "Muat contoh (simulasi)", class = "btn s", style = "margin-left:.5rem"),
                         p(class = "mu mt-2", "Kolom wajib: tanggal, jam_keberangkatan, jumlah_penumpang. Opsional: hari, jenis_hari, stasiun. Satu baris = jumlah penumpang pada satu tanggal, satu jam, dan satu stasiun (jika ada)."),
                         uiOutput(ns("status"))),
                     uiOutput(ns("isu")),
@@ -41,10 +42,17 @@ mod_data_server <- function(id, state) {
     observeEvent(input$contoh, {
       muat_ke_state(state, proses_dataset(baca_berkas("data/contoh_simulasi.csv", "contoh_simulasi.csv")), "contoh_simulasi.csv")
     })
+    observeEvent(input$jabodetabek, {
+      withProgress(message = "Memuat data Jabodetabek 2025 (±587 ribu baris)…", value = 0.5, {
+        muat_berkas_bawaan(state, "data/jabodetabek_2025.csv")
+      })
+    })
 
     output$status <- renderUI(div("File: ", strong(state$file %||% "–"), " ", badge_status(state$status)))
     output$isu <- renderUI({
-      tagList(if (grepl("simulasi", state$file %||% "")) div(class = "msg wr", "Data contoh ini SIMULASI untuk demo alur aplikasi, bukan data penumpang aktual."),
+      sumber <- jenis_sumber(state$file)
+      tagList(if (sumber == "simulasi") div(class = "msg wr", "Data contoh ini SIMULASI untuk demo alur aplikasi, bukan data penumpang aktual."),
+              if (sumber == "alokasi") div(class = "msg wr", "Data Jabodetabek 2025 ini disusun dengan membagi total bulanan BPS ke hari, jam, dan stasiun berdasarkan asumsi, bukan pencacahan penumpang per stasiun. Rincian ada di menu Tentang."),
               kotak_isu(state$issues))
     })
     output$ui_ringkasan <- renderUI({

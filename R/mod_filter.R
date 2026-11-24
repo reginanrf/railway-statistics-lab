@@ -5,7 +5,7 @@
 mod_filter_ui <- function(id) {
   ns <- NS(id)
   div(class = "filter-bar",
-    dateRangeInput(ns("periode"), "Periode tanggal", start = NA, end = NA, language = "id"),
+    dateRangeInput(ns("periode"), "Periode tanggal", start = NULL, end = NULL, language = "id"),
     selectInput(ns("jenis"), "Jenis hari", choices = c("Semua" = "")),
     selectInput(ns("jam"), "Jam keberangkatan", choices = c("Semua" = "")),
     uiOutput(ns("ui_stasiun")),
