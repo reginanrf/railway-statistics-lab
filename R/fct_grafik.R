@@ -63,10 +63,64 @@ grafik_histogram <- function(df, judul) {
   rapikan_plotly(plotly::ggplotly(p))
 }
 
+# Grafik rata-rata jumlah penumpang per pengamatan untuk setiap tanggal.
+# Satu tanggal harus menghasilkan tepat satu nilai rata-rata.
 grafik_garis <- function(df, judul) {
-  d <- df |> dplyr::group_by(tanggal) |> dplyr::summarise(rata = mean(jumlah_penumpang), .groups = "drop")
-  p <- ggplot2::ggplot(d, ggplot2::aes(tanggal, rata)) +
-    ggplot2::geom_line(color = WARNA_UTAMA) + ggplot2::geom_point(color = WARNA_UTAMA) +
-    ggplot2::labs(title = judul, x = "Tanggal", y = "Rata-rata per pengamatan") + tema_rsl()
-  rapikan_plotly(plotly::ggplotly(p))
+  # Pastikan kolom tanggal benar-benar bertipe Date dan tidak menyimpan komponen jam.
+  tanggal_harian <- as.Date(df$tanggal)
+
+  # Agregasi: seluruh pengamatan pada tanggal yang sama diringkas menjadi
+  # satu rata-rata harian. Jumlah pengamatan disimpan untuk tooltip.
+  d <- tibble::tibble(
+    tanggal = tanggal_harian,
+    jumlah_penumpang = as.numeric(df$jumlah_penumpang)
+  ) |>
+    dplyr::filter(!is.na(tanggal), is.finite(jumlah_penumpang)) |>
+    dplyr::group_by(tanggal) |>
+    dplyr::summarise(
+      rata = mean(jumlah_penumpang),
+      n_pengamatan = dplyr::n(),
+      .groups = "drop"
+    ) |>
+    dplyr::arrange(tanggal)
+
+  # Tangani kondisi tidak ada data valid.
+  if (nrow(d) == 0) {
+    p <- ggplot2::ggplot() +
+      ggplot2::labs(
+        title = judul,
+        x = "Tanggal",
+        y = "Rata-rata jumlah penumpang per pengamatan",
+        subtitle = "Tidak ada data valid untuk ditampilkan"
+      ) +
+      tema_rsl()
+    return(rapikan_plotly(plotly::ggplotly(p)))
+  }
+
+  # Tooltip menampilkan nilai rata-rata dan banyaknya catatan pada tanggal itu.
+  d$.tip <- paste0(
+    "Tanggal: ", format(d$tanggal, "%d-%m-%Y"),
+    "<br>Rata-rata: ", fmt_id(d$rata),
+    "<br>Jumlah pengamatan: ", fmt_id(d$n_pengamatan, 0)
+  )
+
+  p <- ggplot2::ggplot(
+    d,
+    ggplot2::aes(
+      x = tanggal,
+      y = rata,
+      group = 1,
+      text = .tip
+    )
+  ) +
+    ggplot2::geom_line(color = WARNA_UTAMA, linewidth = 0.7, na.rm = TRUE) +
+    ggplot2::geom_point(color = WARNA_UTAMA, size = 1.5, na.rm = TRUE) +
+    ggplot2::labs(
+      title = judul,
+      x = "Tanggal",
+      y = "Rata-rata jumlah penumpang per pengamatan"
+    ) +
+    tema_rsl()
+
+  rapikan_plotly(plotly::ggplotly(p, tooltip = "text"))
 }

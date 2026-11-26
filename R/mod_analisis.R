@@ -110,7 +110,7 @@ hitung_analisis_desc <- function(df) {
   x <- df$jumlah_penumpang
   list(tabel = hitung_deskriptif(x), interpretasi = interpretasi_deskriptif(x),
        plot1 = grafik_histogram(df, "Histogram jumlah penumpang"),
-       plot2 = if (dplyr::n_distinct(df$tanggal) > 1) grafik_garis(df, "Rata-rata penumpang menurut tanggal") else NULL)
+       plot2 = if (dplyr::n_distinct(df$tanggal) > 1) grafik_garis(df, "Rata-rata jumlah penumpang per pengamatan menurut tanggal") else NULL)
 }
 
 hitung_analisis_dist <- function(df, jenis, ukuran) {
