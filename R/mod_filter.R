@@ -2,14 +2,22 @@
 # Modul filter dataset (periode, jenis hari, jam, stasiun).
 # Dipakai di menu Data dan Analisis. Mengembalikan reactive data terfilter.
 
-mod_filter_ui <- function(id) {
+mod_filter_ui <- function(id, extra_ui = NULL) {
   ns <- NS(id)
   div(class = "filter-bar",
-    dateRangeInput(ns("periode"), "Periode tanggal", start = NULL, end = NULL, language = "id"),
-    selectInput(ns("jenis"), "Jenis hari", choices = c("Semua" = "")),
-    selectInput(ns("jam"), "Jam keberangkatan", choices = c("Semua" = "")),
-    uiOutput(ns("ui_stasiun")),
-    actionButton(ns("reset"), "Reset filter", class = "btn-sm btn-outline-primary")
+      dateRangeInput(
+        ns("periode"),
+        "Periode tanggal",
+        start = NULL,
+        end = NULL,
+        language = "id",
+        format = "dd/mm/yyyy"
+      ),
+      selectInput(ns("jenis"), "Jenis hari", choices = c("Semua" = "")),
+      selectInput(ns("jam"), "Jam keberangkatan", choices = c("Semua" = "")),
+      uiOutput(ns("ui_stasiun")),
+      actionButton(ns("reset"), "Reset filter", class = "btn-sm btn-outline-primary"),
+      extra_ui
   )
 }
 
